@@ -1,0 +1,162 @@
+//BullyAlgoRithm.java
+
+
+
+import java.util.Scanner;
+
+class Process {
+    int id;
+    boolean active;
+
+    Process(int id) {
+        this.id = id;
+        active = true;
+    }
+}
+
+public class BullyAlgorithm {
+    static int n;
+    static Process[] processes;
+    static int coordinator;
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter number of processes: ");
+        n = sc.nextInt();
+        processes = new Process[n];
+
+        for (int i = 0; i < n; i++) {
+            processes[i] = new Process(i);
+        }
+
+        coordinator = n - 1; // Highest ID initially is coordinator
+        System.out.println("Initially, Process " + coordinator + " is the Coordinator.");
+
+        while (true) {
+            System.out.println("\nMenu:");
+            System.out.println("1. Crash a process");
+            System.out.println("2. Recover a process");
+            System.out.println("3. Display active processes and Coordinator");
+            System.out.println("4. Exit");
+
+            System.out.print("Enter your choice: ");
+            int choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    crashProcess(sc);
+                    break;
+                case 2:
+                    recoverProcess(sc);
+                    break;
+                case 3:
+                    displayStatus();
+                    break;
+                case 4:
+                    System.out.println("Exiting...");
+                    sc.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice. Try again!");
+            }
+        }
+    }
+
+    static void crashProcess(Scanner sc) {
+        System.out.print("Enter process ID to crash: ");
+        int id = sc.nextInt();
+
+        if (id >= n || id < 0) {
+            System.out.println("Invalid Process ID.");
+            return;
+        }
+
+        if (!processes[id].active) {
+            System.out.println("Process already crashed.");
+            return;
+        }
+
+        processes[id].active = false;
+        System.out.println("Process " + id + " crashed.");
+
+        if (id == coordinator) {
+            System.out.println("Coordinator crashed! Starting election...");
+            startElection();
+        }
+    }
+
+    static void recoverProcess(Scanner sc) {
+        System.out.print("Enter process ID to recover: ");
+        int id = sc.nextInt();
+
+        if (id >= n || id < 0) {
+            System.out.println("Invalid Process ID.");
+            return;
+        }
+
+        if (processes[id].active) {
+            System.out.println("Process is already active.");
+            return;
+        }
+
+        processes[id].active = true;
+        System.out.println("Process " + id + " recovered.");
+
+        // After recovery, if recovered process has higher ID, it may initiate election
+        if (id > coordinator) {
+            System.out.println("Recovered process has higher ID. Starting election...");
+            startElectionFrom(id);
+        }
+    }
+
+    static void displayStatus() {
+        System.out.println("\nActive processes:");
+        for (int i = 0; i < n; i++) {
+            if (processes[i].active) {
+                System.out.print(i + " ");
+            }
+        }
+        System.out.println("\nCurrent Coordinator: Process " + coordinator);
+    }
+
+    static void startElection() {
+        // Let's say the lowest active process starts election
+        for (int i = 0; i < n; i++) {
+            if (processes[i].active) {
+                startElectionFrom(i);
+                break;
+            }
+        }
+    }
+
+    static void startElectionFrom(int initiatorId) {
+        System.out.println("Process " + initiatorId + " initiates election.");
+
+        boolean higherResponded = false;
+        for (int i = initiatorId + 1; i < n; i++) {
+            if (processes[i].active) {
+                System.out.println("Election message sent from Process " + initiatorId + " to Process " + i);
+                System.out.println("Process " + i + " responds OK to Process " + initiatorId);
+                higherResponded = true;
+            }
+        }
+
+        if (!higherResponded) {
+            coordinator = initiatorId;
+            System.out.println("Process " + coordinator + " becomes the new Coordinator.");
+        } else {
+            // Wait for higher process to finish election
+            // Higher process will eventually announce new coordinator
+            // Assume the highest active process becomes the coordinator
+            for (int i = n - 1; i >= 0; i--) {
+                if (processes[i].active) {
+                    coordinator = i;
+                    break;
+                }
+            }
+            System.out.println("Process " + coordinator + " becomes the new Coordinator.");
+        }
+    }
+}
+

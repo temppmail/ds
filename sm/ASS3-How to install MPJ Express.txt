@@ -1,0 +1,140 @@
+🎯 Steps to Download, Install, and Run MPJ Express on Ubuntu
+Step 1: Install Java (if not already installed)
+First, check Java:
+
+bash
+Copy
+Edit
+java -version
+If Java is not installed, install OpenJDK:
+
+bash
+Copy
+Edit
+sudo apt update
+sudo apt install default-jdk
+✅ Now you have Java.
+
+Step 2: Download MPJ Express
+Go to MPJ Express Official Site or download using terminal:
+
+bash
+Copy
+Edit
+wget https://sourceforge.net/projects/mpjexpress/files/latest/download -O mpjexpress.tar.gz
+Now extract it:
+
+bash
+Copy
+Edit
+tar -xvzf mpjexpress.tar.gz
+This will create a folder like mpj-v0_44 or similar.
+
+✅ Now MPJ Express is downloaded.
+
+Step 3: Set Environment Variables
+Add MPJ_HOME and update PATH.
+
+Suppose you extracted MPJ to:
+
+arduino
+Copy
+Edit
+/home/your-username/mpj-v0_44
+Now edit .bashrc:
+
+bash
+Copy
+Edit
+nano ~/.bashrc
+Add at the end of the file:
+
+bash
+Copy
+Edit
+export MPJ_HOME=/home/your-username/mpj-v0_44
+export PATH=$PATH:$MPJ_HOME/bin
+Save and exit (Ctrl + O, Enter, Ctrl + X).
+
+Reload .bashrc:
+
+bash
+Copy
+Edit
+source ~/.bashrc
+✅ Now MPJ Express is set globally.
+
+Step 4: Create Your Java Program
+Example: Let's create your DistributedSum.java.
+
+Create a directory:
+
+bash
+Copy
+Edit
+mkdir ~/mpi-practice
+cd ~/mpi-practice
+Now create the file:
+
+bash
+Copy
+Edit
+nano DistributedSum.java
+Paste your code:
+
+java
+Copy
+Edit
+import mpi.*;
+
+public class DistributedSum {
+    public static void main(String args[]) throws Exception {
+        MPI.Init(args);
+
+        int rank = MPI.COMM_WORLD.Rank(); // Process ID
+        int size = MPI.COMM_WORLD.Size(); // Number of Processes
+
+        int[] numbers = new int[size];
+
+        if (rank == 0) {
+            for (int i = 0; i < size; i++) {
+                numbers[i] = (i + 1) * 10;
+            }
+            System.out.println("Root process initialized the array:");
+            for (int num : numbers) {
+                System.out.print(num + " ");
+            }
+            System.out.println();
+        }
+
+        int[] recvNum = new int[1];
+        MPI.COMM_WORLD.Scatter(numbers, 0, 1, MPI.INT, recvNum, 0, 1, MPI.INT, 0);
+
+        int partialSum = recvNum[0] + rank;
+
+        System.out.println("Process " + rank + " received " + recvNum[0] + ", calculated partial sum: " + partialSum);
+
+        MPI.Finalize();
+    }
+}
+✅ Code is ready.
+
+Step 5: Compile the Program
+You must include the MPJ library while compiling.
+
+bash
+Copy
+Edit
+javac -cp $MPJ_HOME/lib/mpj.jar DistributedSum.java
+✅ Now .class file is generated.
+
+Step 6: Run the Program
+Now run it with mpjrun.sh.
+
+Example for 4 processes:
+
+bash
+Copy
+Edit
+mpjrun.sh -np 4 DistributedSum
+✅ Output will look like:

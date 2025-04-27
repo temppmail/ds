@@ -1,0 +1,81 @@
+#server.py
+
+import socket
+import time
+from datetime import datetime
+
+# Server details
+HOST = '0.0.0.0'  # Listen on all interfaces
+PORT = 12345
+
+# Create socket
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind((HOST, PORT))
+server_socket.listen(1)
+
+print("Server started. Waiting for client to connect...")
+conn, addr = server_socket.accept()
+print(f"Connected to client at {addr}")
+
+# Get server time
+server_time = datetime.now()
+print(f"Server time: {server_time}")
+
+# Receive client time
+client_time_str = conn.recv(1024).decode()
+client_time = datetime.strptime(client_time_str, "%Y-%m-%d %H:%M:%S.%f")
+print(f"Client time: {client_time}")
+
+# Calculate time differences
+time_diff = (server_time - client_time).total_seconds()
+average_diff = time_diff / 2
+
+# Adjustment
+adjusted_server_time = server_time - timedelta(seconds=average_diff)
+adjusted_client_time = client_time + timedelta(seconds=average_diff)
+
+print(f"Adjusted Server Time: {adjusted_server_time}")
+print(f"Adjusted Client Time: {adjusted_client_time}")
+
+# Send adjustment to client
+conn.send(str(average_diff).encode())
+
+# Close connection
+conn.close()
+server_socket.close()
+
+
+
+
+#--------------------------------------------------
+
+#client.py
+
+import socket
+import time
+from datetime import datetime, timedelta
+
+# Server IP (change to the server's IP address)
+SERVER_IP = 'your_server_ip_here'  # example: '192.168.1.2'
+PORT = 12345
+
+# Create socket
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((SERVER_IP, PORT))
+
+# Get client time
+client_time = datetime.now()
+print(f"Client time before sync: {client_time}")
+
+# Send client time
+client_socket.send(str(client_time).encode())
+
+# Receive adjustment from server
+average_diff = float(client_socket.recv(1024).decode())
+
+# Adjust client time
+adjusted_time = client_time + timedelta(seconds=average_diff)
+print(f"Client time after sync: {adjusted_time}")
+
+# Close connection
+client_socket.close()

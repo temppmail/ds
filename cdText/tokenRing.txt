@@ -1,0 +1,100 @@
+//tokenRingServer.java
+
+
+import java.io.*;
+import java.net.*;
+
+public class TokenRingServer {
+
+    public static void main(String[] args) {
+        int port = 12345;  // Port number for the server
+        try {
+            ServerSocket serverSocket = new ServerSocket(port);
+            System.out.println("Server started. Waiting for the client...");
+
+            // Wait for the client connection
+            Socket socket = serverSocket.accept();
+            System.out.println("Client connected.");
+
+            // DataInputStream to read primitive data types
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            // DataOutputStream to send primitive data types
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+
+            // Initializing the token flag to true
+            boolean hasToken = true;
+
+            while (true) {
+                if (hasToken) {
+                    System.out.println("Server has the token. Entering Critical Section...");
+                    Thread.sleep(2000); // Simulating CS execution for 2 seconds
+                    System.out.println("Server has finished Critical Section.");
+
+                    // Passing the token to the client
+                    out.writeUTF("TOKEN"); // Send token to client
+                    hasToken = false;
+                }
+
+                // Receiving message from client
+                String message = in.readUTF();
+                if (message.equals("TOKEN")) {
+                    System.out.println("Server received the token from client.");
+                    hasToken = true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+//-------------------------------
+
+//tokenRingClient.java
+
+import java.io.*;
+import java.net.*;
+
+public class TokenRingClient {
+
+    public static void main(String[] args) {
+        String serverAddress = "localhost"; // Server address (machine 1)
+        int port = 12345;  // Port number for the server
+
+        try {
+            Socket socket = new Socket(serverAddress, port);
+            System.out.println("Client connected to server.");
+
+            // DataInputStream to read primitive data types
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            // DataOutputStream to send primitive data types
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+
+            // Initializing the token flag to false
+            boolean hasToken = false;
+
+            while (true) {
+                if (hasToken) {
+                    System.out.println("Client has the token. Entering Critical Section...");
+                    Thread.sleep(2000); // Simulating CS execution for 2 seconds
+                    System.out.println("Client has finished Critical Section.");
+
+                    // Passing the token back to the server
+                    out.writeUTF("TOKEN"); // Send token to server
+                    hasToken = false;
+                }
+
+                // Receiving message from server
+                String message = in.readUTF();
+                if (message.equals("TOKEN")) {
+                    System.out.println("Client received the token from server.");
+                    hasToken = true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+

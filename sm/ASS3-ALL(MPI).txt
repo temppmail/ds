@@ -1,0 +1,429 @@
+2.1 Design a distributed application using MPI for computation where root process
+has an array of elements equal to the size of processors and distributed to the
+worker processes which calculates and displays the intermediate sums
+calculated at different processors. Perform these operations on 2 different
+machines.
+
+
+
+import mpi.*;
+
+public class DistributedSumMPI {
+    public static void main(String args[]) throws Exception {
+        MPI.Init(args);
+
+        int rank = MPI.COMM_WORLD.Rank(); // Get process ID
+        int size = MPI.COMM_WORLD.Size(); // Get number of processes
+
+        int[] numbers = new int[size]; // array to hold numbers
+
+        if (rank == 0) {
+            // Root process initializes the array
+            for (int i = 0; i < size; i++) {
+                numbers[i] = (i + 1) * 10; // Example values: 10, 20, 30, 40, ...
+            }
+            System.out.println("Root process initialized the array:");
+            for (int num : numbers) {
+                System.out.print(num + " ");
+            }
+            System.out.println();
+        }
+
+        // Each process will receive one number
+        int[] recvNum = new int[1];
+        MPI.COMM_WORLD.Scatter(numbers, 0, 1, MPI.INT, recvNum, 0, 1, MPI.INT, 0);
+
+        // Each process calculates its intermediate sum (value + rank)
+        int partialSum = recvNum[0] + rank;
+
+        // Display partial sum
+        System.out.println("Process " + rank + " received " + recvNum[0] + ", calculated partial sum: " + partialSum);
+
+        MPI.Finalize();
+    }
+}
+
+--------------------------------------------------------------------
+javac -cp $MPJ_HOME/lib/mpj.jar DistributedSumMPI.java
+mpjrun.sh -np 4 DistributedSumMPI
+-------------------------------------------------------------------
+public class DistributedSumWithoutMPI {
+
+    static class Worker extends Thread {
+        private int rank;
+        private int recvNum;
+
+        Worker(int rank, int recvNum) {
+            this.rank = rank;
+            this.recvNum = recvNum;
+        }
+
+        public void run() {
+            int partialSum = recvNum + rank;
+            System.out.println("Thread " + rank + " received " + recvNum + ", calculated partial sum: " + partialSum);
+        }
+    }
+
+    public static void main(String[] args) {
+        int size = 4; // Simulating 4 processes
+
+        int[] numbers = new int[size];
+
+        // Root process initializes the array
+        for (int i = 0; i < size; i++) {
+            numbers[i] = (i + 1) * 10; // Example values: 10, 20, 30, 40
+        }
+        System.out.println("Root process initialized the array:");
+        for (int num : numbers) {
+            System.out.print(num + " ");
+        }
+        System.out.println();
+
+        // Create and start threads (simulating workers)
+        Worker[] workers = new Worker[size];
+        for (int i = 0; i < size; i++) {
+            workers[i] = new Worker(i, numbers[i]);
+            workers[i].start();
+        }
+
+        // Wait for all threads to finish
+        for (int i = 0; i < size; i++) {
+            try {
+                workers[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+-------------------------------------------------------------------------------------------------------------------
+
+
+
+2.2 Design a distributed application using MPI for computation where root
+process has an array of elements equal to the size of processors which is
+divided to the worker processes which calculates and displays the
+intermediate multiplication calculated at different processors.
+
+
+import mpi.*;
+
+public class DistributedMultiplicationMPI {
+    public static void main(String args[]) throws Exception {
+        MPI.Init(args);
+
+        int rank = MPI.COMM_WORLD.Rank(); // Get process ID
+        int size = MPI.COMM_WORLD.Size(); // Get number of processes
+
+        int[] numbers = new int[size]; // array to hold numbers
+
+        if (rank == 0) {
+            // Root process initializes the array
+            for (int i = 0; i < size; i++) {
+                numbers[i] = (i + 1) * 5; // Example values: 5, 10, 15, 20
+            }
+            System.out.println("Root process initialized the array:");
+            for (int num : numbers) {
+                System.out.print(num + " ");
+            }
+            System.out.println();
+        }
+
+        // Each process will receive one number
+        int[] recvNum = new int[1];
+        MPI.COMM_WORLD.Scatter(numbers, 0, 1, MPI.INT, recvNum, 0, 1, MPI.INT, 0);
+
+        // Each process calculates intermediate multiplication (value * rank)
+        int partialProduct = recvNum[0] * rank;
+
+        // Display partial product
+        System.out.println("Process " + rank + " received " + recvNum[0] + ", calculated partial product: " + partialProduct);
+
+        MPI.Finalize();
+    }
+}
+----------------------------------------
+public class DistributedMultiplicationWithoutMPI {
+
+    static class Worker extends Thread {
+        private int rank;
+        private int recvNum;
+
+        Worker(int rank, int recvNum) {
+            this.rank = rank;
+            this.recvNum = recvNum;
+        }
+
+        public void run() {
+            int partialProduct = recvNum * rank;
+            System.out.println("Thread " + rank + " received " + recvNum + ", calculated partial product: " + partialProduct);
+        }
+    }
+
+    public static void main(String[] args) {
+        int size = 4; // Simulating 4 processes
+
+        int[] numbers = new int[size];
+
+        // Root process initializes the array
+        for (int i = 0; i < size; i++) {
+            numbers[i] = (i + 1) * 5; // Example values: 5, 10, 15, 20
+        }
+        System.out.println("Root process initialized the array:");
+        for (int num : numbers) {
+            System.out.print(num + " ");
+        }
+        System.out.println();
+
+        // Create and start threads (simulating workers)
+        Worker[] workers = new Worker[size];
+        for (int i = 0; i < size; i++) {
+            workers[i] = new Worker(i, numbers[i]);
+            workers[i].start();
+        }
+
+        // Wait for all threads to finish
+        for (int i = 0; i < size; i++) {
+            try {
+                workers[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+------------------------------------------------------------------
+
+2.3 Design a distributed application that generate a random array of numbers on the root
+process (process 0) using Java Message Passing Interface (MPI), Scatter the numbers
+to all processes, giving each process an equal amount of numbers. Each process
+computes the average of their subset of the numbers. Gather all averages to the root
+process. The root process then computes the average of these numbers to get the final
+average
+
+import mpi.*;
+import java.util.Random;
+
+public class DistributedAverageMPI {
+    public static void main(String args[]) throws Exception {
+        MPI.Init(args);
+
+        int rank = MPI.COMM_WORLD.Rank(); // Process ID
+        int size = MPI.COMM_WORLD.Size(); // Total number of processes
+
+        int totalNumbers = size * 2; // For example, 2 numbers per process
+        int[] numbers = new int[totalNumbers];
+
+        if (rank == 0) {
+            // Root generates random numbers
+            Random rand = new Random();
+            System.out.println("Root process generated the array:");
+            for (int i = 0; i < totalNumbers; i++) {
+                numbers[i] = rand.nextInt(100); // Random numbers 0-99
+                System.out.print(numbers[i] + " ");
+            }
+            System.out.println();
+        }
+
+        int[] recvNumbers = new int[2]; // Each process gets 2 numbers
+        MPI.COMM_WORLD.Scatter(numbers, 0, 2, MPI.INT, recvNumbers, 0, 2, MPI.INT, 0);
+
+        // Each process computes local average
+        double localSum = recvNumbers[0] + recvNumbers[1];
+        double localAvg = localSum / 2.0;
+
+        System.out.println("Process " + rank + " received numbers: " + recvNumbers[0] + ", " + recvNumbers[1] + " -> Local average: " + localAvg);
+
+        double[] localAvgArray = new double[]{localAvg};
+        double[] gatheredAverages = new double[size];
+
+        MPI.COMM_WORLD.Gather(localAvgArray, 0, 1, MPI.DOUBLE, gatheredAverages, 0, 1, MPI.DOUBLE, 0);
+
+        if (rank == 0) {
+            double finalSum = 0;
+            for (double avg : gatheredAverages) {
+                finalSum += avg;
+            }
+            double finalAverage = finalSum / size;
+            System.out.println("Final average computed at root: " + finalAverage);
+        }
+
+        MPI.Finalize();
+    }
+}
+-----------------------------------
+import java.util.Random;
+
+public class DistributedAverageWithoutMPI {
+
+    static class Worker extends Thread {
+        private int rank;
+        private int[] recvNumbers;
+        private double[] localAverages;
+
+        Worker(int rank, int[] recvNumbers, double[] localAverages) {
+            this.rank = rank;
+            this.recvNumbers = recvNumbers;
+            this.localAverages = localAverages;
+        }
+
+        public void run() {
+            double localSum = recvNumbers[0] + recvNumbers[1];
+            double localAvg = localSum / 2.0;
+            localAverages[rank] = localAvg;
+            System.out.println("Thread " + rank + " received numbers: " + recvNumbers[0] + ", " + recvNumbers[1] + " -> Local average: " + localAvg);
+        }
+    }
+
+    public static void main(String[] args) {
+        int size = 4; // Simulating 4 processes
+        int totalNumbers = size * 2;
+        int[] numbers = new int[totalNumbers];
+        double[] localAverages = new double[size];
+
+        Random rand = new Random();
+        System.out.println("Root process generated the array:");
+        for (int i = 0; i < totalNumbers; i++) {
+            numbers[i] = rand.nextInt(100);
+            System.out.print(numbers[i] + " ");
+        }
+        System.out.println();
+
+        Worker[] workers = new Worker[size];
+
+        for (int i = 0; i < size; i++) {
+            int[] recvNumbers = new int[2];
+            recvNumbers[0] = numbers[i * 2];
+            recvNumbers[1] = numbers[i * 2 + 1];
+            workers[i] = new Worker(i, recvNumbers, localAverages);
+            workers[i].start();
+        }
+
+        for (int i = 0; i < size; i++) {
+            try {
+                workers[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        double finalSum = 0;
+        for (double avg : localAverages) {
+            finalSum += avg;
+        }
+        double finalAverage = finalSum / size;
+        System.out.println("Final average computed at root: " + finalAverage);
+    }
+}
+----------------------------------------
+
+2.4 Design a distributed application using MPI for computation where root process has
+an array of elements equal to the size of processors which is divided to the worker
+processes which calculates the reciprocal and resultant array will be displayed at root.
+
+import mpi.*;
+
+public class DistributedReciprocalMPI {
+    public static void main(String args[]) throws Exception {
+        MPI.Init(args);
+
+        int rank = MPI.COMM_WORLD.Rank();
+        int size = MPI.COMM_WORLD.Size();
+
+        int[] numbers = new int[size];
+        double[] reciprocals = new double[size];
+
+        if (rank == 0) {
+            // Root initializes array
+            System.out.println("Root process initialized array:");
+            for (int i = 0; i < size; i++) {
+                numbers[i] = (i + 1) * 2; // Example: 2,4,6,8...
+                System.out.print(numbers[i] + " ");
+            }
+            System.out.println();
+        }
+
+        int[] recvNum = new int[1];
+        MPI.COMM_WORLD.Scatter(numbers, 0, 1, MPI.INT, recvNum, 0, 1, MPI.INT, 0);
+
+        // Each process calculates reciprocal
+        double localReciprocal = 1.0 / recvNum[0];
+
+        System.out.println("Process " + rank + " received " + recvNum[0] + " -> Reciprocal: " + localReciprocal);
+
+        double[] localReciprocalArray = new double[]{localReciprocal};
+
+        MPI.COMM_WORLD.Gather(localReciprocalArray, 0, 1, MPI.DOUBLE, reciprocals, 0, 1, MPI.DOUBLE, 0);
+
+        if (rank == 0) {
+            System.out.println("Resultant array of reciprocals at root:");
+            for (double rec : reciprocals) {
+                System.out.print(rec + " ");
+            }
+            System.out.println();
+        }
+
+        MPI.Finalize();
+    }
+}
+----------------------------------
+
+public class DistributedReciprocalWithoutMPI {
+
+    static class Worker extends Thread {
+        private int rank;
+        private int number;
+        private double[] reciprocals;
+
+        Worker(int rank, int number, double[] reciprocals) {
+            this.rank = rank;
+            this.number = number;
+            this.reciprocals = reciprocals;
+        }
+
+        public void run() {
+            double localReciprocal = 1.0 / number;
+            reciprocals[rank] = localReciprocal;
+            System.out.println("Thread " + rank + " received " + number + " -> Reciprocal: " + localReciprocal);
+        }
+    }
+
+    public static void main(String[] args) {
+        int size = 4; // Simulate 4 processes
+        int[] numbers = new int[size];
+        double[] reciprocals = new double[size];
+
+        System.out.println("Root process initialized array:");
+        for (int i = 0; i < size; i++) {
+            numbers[i] = (i + 1) * 2; // Example: 2,4,6,8
+            System.out.print(numbers[i] + " ");
+        }
+        System.out.println();
+
+        Worker[] workers = new Worker[size];
+
+        for (int i = 0; i < size; i++) {
+            workers[i] = new Worker(i, numbers[i], reciprocals);
+            workers[i].start();
+        }
+
+        for (int i = 0; i < size; i++) {
+            try {
+                workers[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("Resultant array of reciprocals at root:");
+        for (double rec : reciprocals) {
+            System.out.print(rec + " ");
+        }
+        System.out.println();
+    }
+}
+------------------
+
+javac -cp $MPJ_HOME/lib/mpj.jar DistributedReciprocalMPI.java
+mpjrun.sh -np 4 DistributedReciprocalMPI
+----------------------------------

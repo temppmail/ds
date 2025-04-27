@@ -1,0 +1,3 @@
+chmod +x ./mpj/bin/mpjrun.sh
+javac -cp ./mpj/lib/mpj.jar --release 11 DistributedSum.java
+./mpj/bin/mpjrun.sh -np 4 -cp . DistributedSum

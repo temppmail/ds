@@ -1,0 +1,90 @@
+//Addition.java
+
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface Addition extends Remote {
+    public int add(int a, int b) throws RemoteException;
+}
+
+//------------------------
+
+
+//AdditionImplement.java
+
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class AdditionImplement extends UnicastRemoteObject implements Addition {
+    AdditionImplement() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public int add(int a, int b) throws RemoteException{
+        System.out.println("req recived to add "+ a+" + "+b);
+        return a+b;
+    }
+}
+
+
+//----------------------------
+
+
+
+
+//AdditionServer.java
+
+
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class AdditionServer {
+    public static void main(String[] args) {
+        try{
+            LocateRegistry.createRegistry(1099);
+            AdditionImplement obj = new AdditionImplement();
+            Naming.rebind("AdditionService",obj);
+            System.out.println("Addition server is ready");
+        }catch (Exception e){
+            System.out.println("exceprion occured");
+            System.out.println(e.toString());
+        }
+
+
+    }
+}
+
+
+//-------------------------
+
+
+
+//AdditionClient.java
+
+
+
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class AdditionClient {
+    public static void main(String[] args) {
+        try{
+
+            Addition addition = (Addition) Naming.lookup("rmi://localhost/AdditionService");
+            Scanner in = new Scanner(System.in);
+            System.out.println("enter first number ");
+            int a = in.nextInt();
+            System.out.println("enter second number ");
+            int b = in.nextInt();
+            int res = addition.add(a,b);
+            System.out.println("result is "+res);
+
+        }catch (Exception e){
+            System.out.println("exception occured");
+        }
+    }
+}
+
+
+

@@ -1,0 +1,455 @@
+7 1.7) Miles to Kilometer Conversion Server
+Implement multi-threaded client/server Process communication using RMI for Miles to Kilometer Conversion Server on 2 different machines.
+
+File: MilesToKmInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface MilesToKmInterface extends Remote {
+    double convertMilesToKm(double miles) throws RemoteException;
+}
+File: MilesToKmServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class MilesToKmServer extends UnicastRemoteObject implements MilesToKmInterface {
+
+    protected MilesToKmServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public double convertMilesToKm(double miles) throws RemoteException {
+        return miles * 1.60934;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            MilesToKmServer server = new MilesToKmServer();
+            Naming.rebind("rmi://localhost/MilesToKmService", server);
+
+            System.out.println("Miles to Kilometer Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: MilesToKmClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class MilesToKmClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/MilesToKmService";
+            MilesToKmInterface server = (MilesToKmInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter miles (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                double miles = Double.parseDouble(input);
+
+                double km = server.convertMilesToKm(miles);
+                System.out.println(miles + " miles = " + km + " kilometers");
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+8 1.8) Echo Server
+Implement multi-threaded client/server Process communication using RMI for Printing Name Appending to Hello on 2 different machines.
+
+File: EchoInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface EchoInterface extends Remote {
+    String sayHello(String name) throws RemoteException;
+}
+File: EchoServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class EchoServer extends UnicastRemoteObject implements EchoInterface {
+
+    protected EchoServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public String sayHello(String name) throws RemoteException {
+        return "Hello " + name;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            EchoServer server = new EchoServer();
+            Naming.rebind("rmi://localhost/EchoService", server);
+
+            System.out.println("Echo Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: EchoClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class EchoClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/EchoService";
+            EchoInterface server = (EchoInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter your name (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
+                String response = server.sayHello(input);
+                System.out.println(response);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+9 1.9) Compare 2 Strings
+Implement multi-threaded client/server Process communication using RMI for Comparing 2 Strings and Return lexicographically Largest string. Perform operations on 2 different machines.
+
+File: CompareStringsInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface CompareStringsInterface extends Remote {
+    String getLargerString(String s1, String s2) throws RemoteException;
+}
+File: CompareStringsServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class CompareStringsServer extends UnicastRemoteObject implements CompareStringsInterface {
+
+    protected CompareStringsServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public String getLargerString(String s1, String s2) throws RemoteException {
+        return (s1.compareTo(s2) > 0) ? s1 : s2;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            CompareStringsServer server = new CompareStringsServer();
+            Naming.rebind("rmi://localhost/CompareStringsService", server);
+
+            System.out.println("Compare Strings Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: CompareStringsClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class CompareStringsClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/CompareStringsService";
+            CompareStringsInterface server = (CompareStringsInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter first string (or 'exit' to quit): ");
+                String s1 = scanner.next();
+                if (s1.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
+                System.out.print("Enter second string: ");
+                String s2 = scanner.next();
+
+                String larger = server.getLargerString(s1, s2);
+                System.out.println("Lexicographically larger string is: " + larger);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+10 1.10) Count Vowels
+Implement multi-threaded client/server Process communication using RMI for Counting Vowels Present in Word. Perform operations on 2 different machines.
+
+File: VowelCountInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface VowelCountInterface extends Remote {
+    int countVowels(String word) throws RemoteException;
+}
+File: VowelCountServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class VowelCountServer extends UnicastRemoteObject implements VowelCountInterface {
+
+    protected VowelCountServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public int countVowels(String word) throws RemoteException {
+        int count = 0;
+        for (char c : word.toLowerCase().toCharArray()) {
+            if ("aeiou".indexOf(c) != -1) {
+                count++;
+            }
+        }
+        return count;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            VowelCountServer server = new VowelCountServer();
+            Naming.rebind("rmi://localhost/VowelCountService", server);
+
+            System.out.println("Vowel Count Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: VowelCountClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class VowelCountClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/VowelCountService";
+            VowelCountInterface server = (VowelCountInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter a word (or 'exit' to quit): ");
+                String word = scanner.next();
+                if (word.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
+                int vowelCount = server.countVowels(word);
+                System.out.println("Number of vowels: " + vowelCount);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+11 1.11) Factorial of Number
+Implement multi-threaded client/server Process communication using RMI for Find factorial of Number. Perform operations on 2 different machines.
+
+File: FactorialInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface FactorialInterface extends Remote {
+    long factorial(int number) throws RemoteException;
+}
+File: FactorialServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class FactorialServer extends UnicastRemoteObject implements FactorialInterface {
+
+    protected FactorialServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public long factorial(int number) throws RemoteException {
+        long result = 1;
+        for (int i = 2; i <= number; i++) {
+            result *= i;
+        }
+        return result;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            FactorialServer server = new FactorialServer();
+            Naming.rebind("rmi://localhost/FactorialService", server);
+
+            System.out.println("Factorial Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: FactorialClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class FactorialClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/FactorialService";
+            FactorialInterface server = (FactorialInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter a number (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                int number = Integer.parseInt(input);
+
+                long result = server.factorial(number);
+                System.out.println("Factorial of " + number + " = " + result);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

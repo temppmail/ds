@@ -1,0 +1,270 @@
+1.4) Subtract Server
+Implement multi-threaded client/server Process communication using RMI for Subtract of Numbers on 2 different machines.
+
+File: SubtractInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface SubtractInterface extends Remote {
+    int subtract(int a, int b) throws RemoteException;
+}
+File: SubtractServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class SubtractServer extends UnicastRemoteObject implements SubtractInterface {
+
+    protected SubtractServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public int subtract(int a, int b) throws RemoteException {
+        return a - b;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            SubtractServer server = new SubtractServer();
+            Naming.rebind("rmi://localhost/SubtractService", server);
+
+            System.out.println("Subtract Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: SubtractClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class SubtractClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/SubtractService";
+            SubtractInterface server = (SubtractInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter first number (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                int a = Integer.parseInt(input);
+
+                System.out.print("Enter second number: ");
+                int b = scanner.nextInt();
+
+                int result = server.subtract(a, b);
+                System.out.println("Result: " + result);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+1.5) Power Calculation
+Implement multi-threaded client/server Process communication using RMI for 2’s Power of Given Number on 2 different machines.
+
+File: PowerInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface PowerInterface extends Remote {
+    double calculatePower(int exponent) throws RemoteException;
+}
+File: PowerServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class PowerServer extends UnicastRemoteObject implements PowerInterface {
+
+    protected PowerServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public double calculatePower(int exponent) throws RemoteException {
+        return Math.pow(2, exponent);
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            PowerServer server = new PowerServer();
+            Naming.rebind("rmi://localhost/PowerService", server);
+
+            System.out.println("Power Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: PowerClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class PowerClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/PowerService";
+            PowerInterface server = (PowerInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter exponent (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                int exponent = Integer.parseInt(input);
+
+                double result = server.calculatePower(exponent);
+                System.out.println("2^" + exponent + " = " + result);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+1.6) Celsius to Fahrenheit Conversion Server
+Implement multi-threaded client/server Process communication using RMI for Celsius to Fahrenheit Conversion Server on 2 different machines.
+
+File: TemperatureInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface TemperatureInterface extends Remote {
+    double convertCelsiusToFahrenheit(double celsius) throws RemoteException;
+}
+File: TemperatureServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class TemperatureServer extends UnicastRemoteObject implements TemperatureInterface {
+
+    protected TemperatureServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public double convertCelsiusToFahrenheit(double celsius) throws RemoteException {
+        return (celsius * 9/5) + 32;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            TemperatureServer server = new TemperatureServer();
+            Naming.rebind("rmi://localhost/TemperatureService", server);
+
+            System.out.println("Temperature Conversion Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: TemperatureClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class TemperatureClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/TemperatureService";
+            TemperatureInterface server = (TemperatureInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter temperature in Celsius (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                double celsius = Double.parseDouble(input);
+
+                double fahrenheit = server.convertCelsiusToFahrenheit(celsius);
+                System.out.println(celsius + "°C = " + fahrenheit + "°F");
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

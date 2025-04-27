@@ -1,0 +1,287 @@
+Java JDK Installation on Ubuntu
+bash
+Copy
+Edit
+sudo apt update
+sudo apt install default-jdk
+java -version
+javac -version
+1.1) Addition Server
+Implement multi-threaded client/server Process communication using RMI for Addition of Numbers on 2 different machines.
+
+File: AdditionInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface AdditionInterface extends Remote {
+    int add(int a, int b) throws RemoteException;
+}
+File: AdditionServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class AdditionServer extends UnicastRemoteObject implements AdditionInterface {
+
+    protected AdditionServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public int add(int a, int b) throws RemoteException {
+        return a + b;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            AdditionServer server = new AdditionServer();
+            Naming.rebind("rmi://localhost/AdditionService", server);
+
+            System.out.println("Addition Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: AdditionClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class AdditionClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/AdditionService";
+            AdditionInterface server = (AdditionInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter first number (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                int a = Integer.parseInt(input);
+
+                System.out.print("Enter second number: ");
+                int b = scanner.nextInt();
+
+                int result = server.add(a, b);
+                System.out.println("Result: " + result);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+1.2) Multiplication Server
+Implement multi-threaded client/server Process communication using RMI for Multiplication of Numbers on 2 different machines.
+
+File: MultiplicationInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface MultiplicationInterface extends Remote {
+    int multiply(int a, int b) throws RemoteException;
+}
+File: MultiplicationServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class MultiplicationServer extends UnicastRemoteObject implements MultiplicationInterface {
+
+    protected MultiplicationServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public int multiply(int a, int b) throws RemoteException {
+        return a * b;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            MultiplicationServer server = new MultiplicationServer();
+            Naming.rebind("rmi://localhost/MultiplicationService", server);
+
+            System.out.println("Multiplication Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: MultiplicationClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class MultiplicationClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/MultiplicationService";
+            MultiplicationInterface server = (MultiplicationInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter first number (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                int a = Integer.parseInt(input);
+
+                System.out.print("Enter second number: ");
+                int b = scanner.nextInt();
+
+                int result = server.multiply(a, b);
+                System.out.println("Result: " + result);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+1.3) Division Server
+Implement multi-threaded client/server Process communication using RMI for Division of Numbers on 2 different machines.
+
+File: DivisionInterface.java
+
+java
+Copy
+Edit
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface DivisionInterface extends Remote {
+    double divide(double numerator, double denominator) throws RemoteException;
+}
+File: DivisionServer.java
+
+java
+Copy
+Edit
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class DivisionServer extends UnicastRemoteObject implements DivisionInterface {
+
+    protected DivisionServer() throws RemoteException {
+        super();
+    }
+
+    @Override
+    public double divide(double numerator, double denominator) throws RemoteException {
+        if (denominator == 0) {
+            throw new ArithmeticException("Denominator cannot be zero.");
+        }
+        return numerator / denominator;
+    }
+}
+File: ServerMain.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class ServerMain {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+
+            DivisionServer server = new DivisionServer();
+            Naming.rebind("rmi://localhost/DivisionService", server);
+
+            System.out.println("Division Server is ready...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+File: DivisionClient.java
+
+java
+Copy
+Edit
+import java.rmi.Naming;
+import java.util.Scanner;
+
+public class DivisionClient {
+    public static void main(String[] args) {
+        try {
+            String serverAddress = "rmi://localhost/DivisionService";
+            DivisionInterface server = (DivisionInterface) Naming.lookup(serverAddress);
+
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.print("\nEnter numerator (or 'exit' to quit): ");
+                String input = scanner.next();
+                if (input.equalsIgnoreCase("exit")) {
+                    break;
+                }
+                double numerator = Double.parseDouble(input);
+
+                System.out.print("Enter denominator: ");
+                double denominator = scanner.nextDouble();
+
+                double result = server.divide(numerator, denominator);
+                System.out.println("Result: " + result);
+            }
+
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
