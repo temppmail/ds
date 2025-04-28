@@ -1,0 +1,320 @@
+7.1 Create a Simple Calculator web service and consume that web service.
+
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+
+public class CalculatorWebService {
+
+    public static void main(String[] args) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        
+        server.createContext("/add", new CalculatorHandler("add"));
+        server.createContext("/subtract", new CalculatorHandler("subtract"));
+        server.createContext("/multiply", new CalculatorHandler("multiply"));
+        server.createContext("/divide", new CalculatorHandler("divide"));
+        
+        server.start();
+        
+        System.out.println("Server is running on http://localhost:8080/");
+    }
+    
+    // Handler for the calculator operations
+    static class CalculatorHandler implements HttpHandler {
+        private String operation;
+        
+        public CalculatorHandler(String operation) {
+            this.operation = operation;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            // Get query parameters
+            String query = exchange.getRequestURI().getQuery();
+            Map<String, Integer> params = parseQuery(query);
+
+            int a = params.get("a");
+            int b = params.get("b");
+            int result = 0;
+
+            // Perform operation based on the request URL
+            switch (operation) {
+                case "add":
+                    result = a + b;
+                    break;
+                case "subtract":
+                    result = a - b;
+                    break;
+                case "multiply":
+                    result = a * b;
+                    break;
+                case "divide":
+                    if (b != 0) {
+                        result = a / b;
+                    } else {
+                        result = Integer.MIN_VALUE;  // Error for division by zero
+                    }
+                    break;
+            }
+
+            // Send response
+            String response = "Result: " + result;
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+        
+        // Parse query string to extract 'a' and 'b' values
+        private Map<String, Integer> parseQuery(String query) {
+            Map<String, Integer> params = new HashMap<>();
+            String[] queryParams = query.split("&");
+            for (String param : queryParams) {
+                String[] keyValue = param.split("=");
+                params.put(keyValue[0], Integer.parseInt(keyValue[1]));
+            }
+            return params;
+        }
+    }
+}
+------------------------------
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Scanner;
+
+public class CalculatorClient {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        // User input for operation
+        System.out.println("Enter operation (add, subtract, multiply, divide): ");
+        String operation = scanner.nextLine();
+        
+        // User input for two numbers
+        System.out.println("Enter first number: ");
+        int a = scanner.nextInt();
+        
+        System.out.println("Enter second number: ");
+        int b = scanner.nextInt();
+        
+        // Construct the URL for the chosen operation
+        String urlString = "http://localhost:8080/" + operation + "?a=" + a + "&b=" + b;
+
+        try {
+            // Create the URL and open the connection
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // Get the response from the server
+            Scanner responseScanner = new Scanner(connection.getInputStream());
+            String response = "";
+            while (responseScanner.hasNext()) {
+                response += responseScanner.nextLine();
+            }
+
+            // Display the result
+            System.out.println("Response: " + response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+----------------------------------
+
+http://localhost:8080/add?a=25&b=65
+-----------------------------------------
+
+7.4 Create a web service which takes Miles as Input and Display Kilometer as
+Output and Consume that web service.
+
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.util.Map;
+
+public class MilesToKmService {
+
+    public static void main(String[] args) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        server.createContext("/milesToKm", new MilesToKmHandler());
+        server.setExecutor(null); // creates a default executor
+        server.start();
+        System.out.println("Server started at http://localhost:8081/milesToKm");
+    }
+
+    static class MilesToKmHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            // Extract parameters from the request
+            String query = exchange.getRequestURI().getQuery();
+            Map<String, String> params = parseQuery(query);
+
+            // Get the 'a' parameter (miles) and convert it to kilometers
+            String milesStr = params.get("a");
+            double miles = Double.parseDouble(milesStr);
+            double kilometers = miles * 1.60934; // Fix: Added missing semicolon
+
+            // Send the response back
+            String response = "Miles: " + miles + " is equal to Kilometers: " + kilometers;
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+
+        // Parse the query string (e.g., a=25)
+        private Map<String, String> parseQuery(String query) {
+            String[] pairs = query.split("&");
+            Map<String, String> queryParams = new java.util.HashMap<>();
+            for (String pair : pairs) {
+                String[] keyValue = pair.split("=");
+                queryParams.put(keyValue[0], keyValue[1]);
+            }
+            return queryParams;
+        }
+    }
+}
+-------------------------
+
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class MilesToKmClient {
+
+    public static void main(String[] args) {
+        try {
+            // Ask the user to input miles
+            System.out.print("Enter miles: ");
+            java.util.Scanner sc = new java.util.Scanner(System.in);
+            double miles = sc.nextDouble();
+
+            // Construct the URL with the miles parameter
+            String urlString = "http://localhost:8081/milesToKm?a=" + miles;
+
+            // Create a URL object and open a connection
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // Read the response from the server
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            StringBuilder response = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+
+            // Display the response
+            System.out.println("Response from server: " + response.toString());
+
+            // Close the reader and connection
+            reader.close();
+            connection.disconnect();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+-------------------------
+http://localhost:8081/milesToKm?a=10
+--------------------------------
+
+7.3 Create a web service which takes User’s Name as Input and Display Hello
+User_Name Entered by User and Consume that web service.
+
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
+public class HelloService {
+
+    public static void main(String[] args) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        server.createContext("/hello", new HelloHandler());
+        server.setExecutor(null); // Creates a default executor
+        System.out.println("Server started at http://localhost:8080/hello");
+        server.start();
+    }
+
+    static class HelloHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            // Get query parameter (e.g., name=John)
+            URI uri = exchange.getRequestURI();
+            String query = uri.getQuery();
+            String name = "User"; // Default name in case of missing input
+
+            if (query != null && query.contains("name=")) {
+                name = query.split("=")[1]; // Extract the name from the query string
+            }
+
+            // Prepare response
+            String response = "Hello, " + name;
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+
+            // Send the response
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+    }
+}
+-----------------------
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+public class HelloClient {
+    public static void main(String[] args) {
+        try {
+            // Get user input for name
+            java.util.Scanner sc = new java.util.Scanner(System.in);
+            System.out.print("Enter your name: ");
+            String name = sc.nextLine();
+
+            // Create the URL to call the service
+            String urlString = "http://localhost:8080/hello?name=" + name;
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // Read the response from the server
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // Print the response
+            System.out.println("Response from server: " + response.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+-----------------------------
+http://localhost:8080/hello?name=John
